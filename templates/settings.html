@@ -4,5 +4,25 @@
 
 
 {% block body %}
-Settings under contruction
+<div class="card p-4">
+    <form action="/settings" method="post">
+        <div class="form-floating mb-3">
+            <input autocomplete=off class="form-control" name="api_key" id="api_key" type="text" placeholder="Groq API Key" {% if api_key %} value="{{ api_key }}" {% endif %}>
+            <label for="api_key">Your Groq API Key</label>
+        </div>
+
+        {% if not api_key %}
+            <div class="alert alert-danger">
+                You haven't added a Groq API Key yet.
+                <a href="https://console.groq.com" class="alert-link" target="-blank">Get one here for free</a>
+                to enable recipe generation.
+            </div>
+        {% endif %}
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-primary" style="min-width: 100px;" type="submit">Save</button>
+            <a href="/settings" class="btn btn-primary" style="min-width: 100px;">Cancel</a>
+        </div>
+    </form>
+</div>
 {% endblock %}
+

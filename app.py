@@ -30,6 +30,7 @@ def login():
         if request.form.get("dev_sign_in") is not None:
             rows = db.execute("SELECT * FROM users WHERE email = ?", 'test@test.com')
             session["user_id"] = rows[0]["id"]
+            session["api_key"] = rows[0]["api_key"]
             return redirect("/inventory")
         # DEV LOGIN REMOVE ======================================================
 
@@ -45,6 +46,8 @@ def login():
             if check_password_hash(rows[0]["hash"], request.form.get("password")):
                 #log user in
                 session["user_id"] = rows[0]["id"]
+                if rows[0]["api_key"] is not None:
+                    session["api_key"] = rows[0]["api_key"]
                 return redirect("/inventory")
         flash("Invalid email or password.")
         return redirect("/login")
@@ -86,9 +89,6 @@ def register():
                    generate_password_hash(request.form.get("password"))
         )
 
-
-
-
         # Log user in
         rows = db.execute("SELECT * FROM users WHERE email = ?", request.form.get("email"))
         session["user_id"] = rows[0]["id"]
@@ -124,7 +124,7 @@ def inventory_delete():
     return redirect("/inventory")
 
 
-@app.route("/settings")
+@app.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
     # Allow user to update or set their api key
@@ -139,13 +139,14 @@ def settings():
         if len(rows) > 0:
             # Update user account with api key
             db.execute("UPDATE users SET api_key = ? WHERE id = ?", request.form.get("api_key"), session["user_id"])
+            session["api_key"] = request.form.get("api_key")
             flash("Success! Your details have been updated", "success")
             return redirect("/settings")
 
         flash("Aw snap! Something went wrong. Please try logging in again.", "warning")
-        return redirect("/settings")
+        return render_template("/settings", api_key=session["api_key"])
     else:
-        return render_template("settings.html")
+        return render_template("settings.html", api_key=session.get("api_key"))
 
 @app.route("/recipe")
 @login_required
