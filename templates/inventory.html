@@ -4,6 +4,100 @@
 
 
 {% block body %}
-My Inventory under contruction
+<!-- Floating Action Button -->
+<a href="/recipe" class="btn rounded-pill btn-primary shadow-lg p-3" style="position: fixed; bottom: 2rem; right: 2rem">Generate Smart Recipe</a>
+
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex gap-2">
+        <a href="/inventory?sort=name" class="btn btn-sm rounded-pill {% if sort == 'name' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Sort By Name</a>
+        <a href="/inventory?sort=expiry_date" class="btn btn-sm rounded-pill {% if sort == 'expiry_date' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Sort By Expiry</a>
+        <a href="/inventory?sort=amount" class="btn btn-sm rounded-pill {% if sort == 'amount' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Sort By Amount</a>
+    </div>
+    <!-- Trigger -->
+    <button class="btn btn-sm rounded-pill btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#addIngredientModal">
+            + Add Ingredient
+    </button>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="addIngredientModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Ingredient</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form action="/inventory/add" method="post">
+                    <input autofocus autocomplete="off" name="name" type="text" placeholder="Ingredient Name" class="form-control w-100 mb-3">
+
+
+                    <div class="d-flex gap-2 mb-2">
+                        <input name="amount"  type="number" placeholder="Amount" class="form-control w-75">
+
+                        <select class="form-select form-control w-25" name="metric" >
+                            <option value="">No Unit</option>
+                            <option value="g">g</option>
+                            <option value="kg">kg</option>
+                            <option value="ml">ml</option>
+                            <option value="L">L</option>
+                            <option value="units">units</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label d-block text-start">Expiry Date</label>
+                        <input name="expiry_date" id="expiry_date" type="date" class="form-control">
+                    </div>
+                    <button class="btn btn-primary mt-3 w-50" type="submit">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% if ingredients|length == 0 %}
+    <div class="text-centter mt-5">
+        <p class="text-muted">Your pantry is empty.</p>
+        <p>Add your first ingredient!</p>
+    </div>
+{% endif %}
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+    {% for ingredient in ingredients %}
+    <div class="col">
+        <div class="card h-100 shadow-sm p-4 position-relative">
+            <!-- Delete -->
+            <form action="/inventory/delete" method="post">
+                <input type="hidden" name="ingredient_id" value="{{ ingredient.id }}">
+                <button type="submit" class="btn-close position-absolute top-0 end-0 m-2"></button>
+            </form>
+            <!-- Content -->
+            <h6 class="card-title">{{ ingredient.name }}</h6>
+
+            {% if ingredient.amount %}
+            <p class="card-text text-muted small">{{ ingredient.amount }} {{ ingredient.metric }}</p>
+            {% endif %}
+
+            {% if ingredient.days_remaining is not none %}
+                {% if ingredient.days_remaining <= 2 %}
+                    <span class="badge bg-danger py-2">Expires in {{ ingredient.days_remaining }} days</span>
+                {% elif ingredient.days_remaining <= 7 %}
+                    <span class="badge py-2" style="background-color: var(--mustard)">Expires in {{ ingredient.days_remaining }} days</span>
+                {% else %}
+                    <span class="badge bg-success py-2">Expires in {{ ingredient.days_remaining }} days</span>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+
 {% endblock %}
 

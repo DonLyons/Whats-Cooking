@@ -99,27 +99,63 @@ def register():
         # Render page and allow for registration
         return render_template("register.html")
 
-@app.route("/inventory")
+@app.route("/inventory", methods=["GET"])
 @login_required
 def inventory():
     # Show users ingredients/home page
-    return render_template("inventory.html")
+
+    # Sorting:
+    sorts = ["name", "expiry_date", "amount"]
+
+    #   Get sort method from sort var, else use sort by name
+    sort = request.args.get("sort", "name")
+    if sort not in sorts:
+        sort = "name"
+    ingredients = db.execute("SELECT * FROM ingredients WHERE user_id = ? ORDER BY ?", session["user_id"], sort)
+
+    # Calculate days remaining
+    for ingredient in ingredients:
+        # Provided the ingredient has an expiry date
+        if ingredient["expiry_date"]:
+            expiry = date.fromisoformat(ingredient["expiry_date"])
+            days_remaining = (expiry - date.today()).days
+            ingredient["days_remaining"] = days_remaining
+        else:
+            ingredient["days_remaining"] = None
+
+    return render_template("inventory.html", ingredients=ingredients, sort=sort)
 
 
-@app.route("/inventory/add")
+@app.route("/inventory/add", methods=["POST"])
 @login_required
 def inventory_add():
     # Add a new ingredient
-    # Receive form data from inventory and add it to inventory
+    if not request.form.get("name"):
+        flash("Could not add Ingredient. Please include an Ingredient Name")
+        return redirect("/inventory")
+    name = request.form.get("name")
+    amount = request.form.get("amount")
+    metric = request.form.get("metric")
+    expiry_date = request.form.get("expiry_date")
+
+    db.execute("INSERT INTO ingredients (user_id, name, amount, metric, expiry_date) VALUES (:user_id, :name, :amount, :metric, :expiry_date)",
+               user_id=session["user_id"],
+               name=name,
+               amount=amount,
+               metric=metric,
+               expiry_date=expiry_date
+    )
+
     return redirect("/inventory")
 
 
-@app.route("/inventory/delete")
+@app.route("/inventory/delete", methods=["POST"])
 @login_required
 def inventory_delete():
     # Remove ingredient
-    # Receive ingredient id
     # Include user_id when deleting to ensure correct ingredient is removed
+    db.execute("DELETE FROM ingredients WHERE user_id = ? AND id = ?", session["user_id"], request.form.get("ingredient_id"))
+    flash("Item removed.", "success")
     # redirect back to inventory
     return redirect("/inventory")
 
@@ -148,9 +184,72 @@ def settings():
     else:
         return render_template("settings.html", api_key=session.get("api_key"))
 
-@app.route("/recipe")
+@app.route("/recipe", methods=["GET"])
 @login_required
 def recipe():
-    # Request recipe from API AI using most spoilt food in 'inventory'
-    return
+    # Ensure user has an API key
+    if session.get("api_key") is None:
+        flash("Please provide an API Key below to enable recipe generation.")
+        return redirect("/settings")
+
+
+    # Determine ingredients list
+    ingredients = db.execute("SELECT * FROM ingredients ORDER BY expiry_date")
+
+    # Ensure there are enough ingredients for a recipe
+    if len(ingredients) < 3:
+        flash("Add at least 3 ingredients to generate a recipe.", "danger")
+        return redirect("/inventory")
+
+    ingredient_strings = []
+    for ingredient in ingredients:
+        if ingredient["amount"]:
+            ingredient_strings.append(f"{ingredient["name"]} ({ingredient["amount"]}{ingredient["metric"]})")
+        else:
+            ingredient_strings.append(f"{ingredient["name"]}")
+
+    ingredients_list = ", ".join(ingredient_strings)
+
+    # System Prompt
+    system_prompt = """
+                    You are a helpful chef assistant.
+                    When provided with a list of ingredients, generate a detailed and clear recipe.
+                    The list of ingredients is ordered by expiry date in ascending order.
+                    Prioritize using ingredients at the beginning of the list.
+                    Your recipe feedback should not mention your analysis of the list of ingredients and the most spoilt food.
+                    Feedback should only be the recipe itself.
+                    The recipe should be neatly formatted with:
+                    - A creative title
+                    - Total number of servings yielded
+                    - Calories per serving
+                    - Total time to make
+                    - Ingredients
+                    - Numbered Step-by-Step instructions
+                    """
+
+    # Fetch recipe through Groq API
+    client = Groq(api_key=session.get("api_key"))
+
+    chat_completion = client.chat.completions.create(
+        messages=[
+            # System Message
+            {
+                "role": "system",
+                "content": system_prompt,
+            },
+            # Set a user message for the assistant to respond to.
+            {
+                "role": "user",
+                "content": f"I have these ingredients: {ingredients_list}. What can I make?",
+            }
+        ],
+
+        # The language model.
+        model="llama-3.3-70b-versatile"
+    )
+
+    recipe_text = chat_completion.choices[0].message.content
+    recipe_html = markdown.markdown(recipe_text)
+    # Render recipe
+    return render_template("recipe.html", recipe=recipe_html)
 
