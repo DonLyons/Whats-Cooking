@@ -1,0 +1,7 @@
+*.db
+.env
+flask_session/
+__pycache__/
+*.__pycache__
+Thumbs.db
+desktop.ini
