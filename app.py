@@ -1,7 +1,10 @@
 from cs50 import SQL
+from datetime import date
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
+from groq import Groq
 from helpers import login_required
+import markdown
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Configure app
@@ -126,6 +129,7 @@ def inventory():
     return render_template("inventory.html", ingredients=ingredients, sort=sort)
 
 
+
 @app.route("/inventory/add", methods=["POST"])
 @login_required
 def inventory_add():
@@ -183,6 +187,7 @@ def settings():
         return render_template("/settings", api_key=session["api_key"])
     else:
         return render_template("settings.html", api_key=session.get("api_key"))
+
 
 @app.route("/recipe", methods=["GET"])
 @login_required
