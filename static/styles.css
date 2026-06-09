@@ -38,19 +38,19 @@ body {
 .btn-primary:hover {
     background-color: var(--mustard) !important;
     border-color: var(--mustard) !important;
-    color: var(--charcoal) !important;
+    color: var(--cream) !important;
 }
 
 .btn-secondary {
-    background-color:  var(--olive) !important;
+    background-color:  var(--mustard) !important;
     border-color: var(--mustard) !important;
     color: var(--cream) !important;
 }
 
 .btn-secondary:hover {
-    background-color: var(--mustard) !important;
-    border-color: var(--mustard) !important;
-    color: var(--charcoal) !important;
+    background-color: var(--olive) !important;
+    border-color: var(--cream) !important;
+    color: var(--cream) !important;
 }
 
 .sign-in-block {
@@ -60,6 +60,13 @@ body {
     width: 360px;
 }
 
+.settings-block {
+    width: 360px;
+    border-radius: 12px;
+    background: white;
+    border-color: black;
+    border-width: 1px;
+}
 .centre {
     display: flex;
     align-items: center;
@@ -69,7 +76,7 @@ body {
 
 .form-control:focus {
     border-color: var(--sage);
-    border-width: 2px;
+    border-width: 1px;
     box-shadow: 0 0 0 0.25rem rgba(107, 122, 79, 0.45);
 }
 
