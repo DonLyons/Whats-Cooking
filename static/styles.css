@@ -1,0 +1,82 @@
+:root {
+    --olive: #4A5240;
+    --mustard: #D4A017;
+    --cream: #F5F0E8;
+    --brick: #C0392B;
+    --charcoal: #2D2D2D;
+    --sage: #6B7A4F
+}
+
+body {
+    background-color: var(--cream);
+    color: var(--charcoal);
+}
+
+.navbar {
+    background-color: var(--charcoal) !important;
+}
+
+.navbar-dark .nav-link {
+    color: var(--cream) !important;
+}
+
+.navbar-dark .nav-link:hover {
+    color: var(--mustard) !important;
+}
+
+.navbar-brand {
+    color: var(--cream) !important;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background-color: var(--brick) !important;
+    border-color: var(--brick) !important;
+    color: var(--cream) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--mustard) !important;
+    border-color: var(--mustard) !important;
+    color: var(--charcoal) !important;
+}
+
+.btn-secondary {
+    background-color:  var(--olive) !important;
+    border-color: var(--mustard) !important;
+    color: var(--cream) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--mustard) !important;
+    border-color: var(--mustard) !important;
+    color: var(--charcoal) !important;
+}
+
+.sign-in-block {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 360px;
+}
+
+.centre {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+}
+
+.form-control:focus {
+    border-color: var(--sage);
+    border-width: 2px;
+    box-shadow: 0 0 0 0.25rem rgba(107, 122, 79, 0.45);
+}
+
+a {
+    color: var(--brick);
+}
+
+a:hover {
+    color: var(--mustard);
+}
