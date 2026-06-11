@@ -274,3 +274,6 @@ def recipe():
     recipe_html = markdown.markdown(recipe_text)
     # Render recipe
     return render_template("recipe.html", recipe=recipe_html)
+
+if __name__ == "__main__":
+    app.run()
