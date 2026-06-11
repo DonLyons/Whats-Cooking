@@ -79,7 +79,7 @@ def register():
         # Ensure user is not already registered
         with connection:
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-                cursor.execute("SELECT * FROM users WHERE email = ?", request.form.get("email"))
+                cursor.execute("SELECT * FROM users WHERE email = %s", request.form.get("email"))
                 rows = cursor.fetchall()
         if len(rows) > 0:
             flash(
