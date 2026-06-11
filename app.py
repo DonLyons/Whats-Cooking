@@ -132,7 +132,7 @@ def inventory():
     for ingredient in ingredients:
         # Provided the ingredient has an expiry date
         if ingredient["expiry_date"]:
-            expiry = date.fromisoformat(ingredient["expiry_date"])
+            expiry = ingredient["expiry_date"]
             days_remaining = (expiry - date.today()).days
             ingredient["days_remaining"] = days_remaining
         else:
