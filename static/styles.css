@@ -3,6 +3,7 @@
     --mustard: #D4A017;
     --cream: #F5F0E8;
     --brick: #C0392B;
+    --brick-rgb: 192, 57, 43;
     --charcoal: #2D2D2D;
     --sage: #6B7A4F
 }
@@ -98,4 +99,31 @@ a:hover {
 .input-group .btn-outline-primary:active {
     border-color: var(--bs-border-color);
     border-left: 0 !important;
+}
+
+.bg-danger {
+    background-color: rgba(220, 53, 69, 0.4) !important;
+    color: #842029;
+}
+
+.expiry-soon {
+    background-color: rgba(180, 140, 0, 0.4) !important;
+    color: #6b5a00 !important;
+}
+
+.bg-success {
+    background-color: rgba(25, 135, 84, 0.4) !important;
+    color: #0a3622 !important;
+}
+
+.btn-generate {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 0.85rem 1.75rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {box-shadow: 0 4px 10px rgba(var(--brick-rgb), 0.4); }
+    50% { box-shadow: 0 4px 20px rgba(var(--brick-rgb), 1); }
 }
