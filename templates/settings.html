@@ -14,15 +14,14 @@
         {% if not api_key %}
             <div class="alert alert-danger">
                 You haven't added a Groq API Key yet.
-                <a href="https://console.groq.com" class="alert-link" target="-blank">Get one here for free</a>
+                <a href="https://console.groq.com" class="alert-link" target="_blank">Get one here for free</a>
                 to enable recipe generation.
             </div>
         {% endif %}
         <div class="d-flex justify-content-end gap-2">
             <button class="btn btn-primary" style="min-width: 100px;" type="submit">Save</button>
-            <a href="/settings" class="btn btn-primary" style="min-width: 100px;">Cancel</a>
+            <a href="/settings" class="btn btn-outline-secondary" style="min-width: 100px;">Cancel</a>
         </div>
     </form>
 </div>
 {% endblock %}
-

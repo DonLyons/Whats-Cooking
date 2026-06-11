@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     api_key TEXT
 );
 
-CREATE TABLE ingredients (
+CREATE TABLE IF NOT EXISTS ingredients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     name TEXT NOT NULL,

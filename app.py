@@ -1,42 +1,32 @@
 from cs50 import SQL
 from datetime import date
 from flask import Flask, flash, redirect, render_template, request, session
-from flask_session import Session
 from groq import Groq
 from helpers import login_required
 import markdown
+import os
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Configure app
 app = Flask(__name__)
 
-# Use local storage instead of browser cookies
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
+# Default Flask Cookie sessions
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 
 # Set up database
 db = SQL("sqlite:///whats_cooking.db")
+
 
 @app.route("/")
 def index():
     return redirect("/inventory")
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    # Clear previous data for new user
-    session.clear()
-
     if request.method == "POST":
-
-        # DEV LOGIN REMOVE ======================================================
-        if request.form.get("dev_sign_in") is not None:
-            rows = db.execute("SELECT * FROM users WHERE email = ?", 'test@test.com')
-            session["user_id"] = rows[0]["id"]
-            session["api_key"] = rows[0]["api_key"]
-            return redirect("/inventory")
-        # DEV LOGIN REMOVE ======================================================
-
+        # Clear previous data for new user
+        session.clear()
 
         # Ensure the credentials are present and correct and log user in
         if not request.form.get("email") or not request.form.get("password"):
@@ -45,24 +35,27 @@ def login():
 
         # Determine if account exists
         rows = db.execute("SELECT * FROM users WHERE email = ?", request.form.get('email'))
+
         if len(rows) > 0:
             if check_password_hash(rows[0]["hash"], request.form.get("password")):
-                #log user in
+                # Log user in
                 session["user_id"] = rows[0]["id"]
                 if rows[0]["api_key"] is not None:
                     session["api_key"] = rows[0]["api_key"]
                 return redirect("/inventory")
-        flash("Invalid email or password.")
+        flash("Invalid email or password.", "danger")
         return redirect("/login")
     else:
         # Display log in page
         return render_template("login.html")
+
 
 @app.route("/logout")
 def logout():
     session.clear()
     flash("You have been logged out.", "success")
     return redirect("/")
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -82,7 +75,8 @@ def register():
         # Ensure user is not already registered
         rows = db.execute("SELECT * FROM users WHERE email = ?", request.form.get("email"))
         if len(rows) > 0:
-            flash(f"Account with this email ({request.form.get('email')}) already exists.", "warning")
+            flash(
+                f"Account with this email ({request.form.get('email')}) already exists.", "warning")
             return redirect("/register")
             # TODO: Ask user if they want to proceed to login. Perhaps pop-up style
 
@@ -90,7 +84,7 @@ def register():
         db.execute("INSERT INTO users (email, hash) VALUES (?, ?)",
                    request.form.get("email"),
                    generate_password_hash(request.form.get("password"))
-        )
+                   )
 
         # Log user in
         rows = db.execute("SELECT * FROM users WHERE email = ?", request.form.get("email"))
@@ -102,6 +96,7 @@ def register():
         # Render page and allow for registration
         return render_template("register.html")
 
+
 @app.route("/inventory", methods=["GET"])
 @login_required
 def inventory():
@@ -111,10 +106,14 @@ def inventory():
     sorts = ["name", "expiry_date", "amount"]
 
     #   Get sort method from sort var, else use sort by name
-    sort = request.args.get("sort", "name")
+    sort = request.args.get("sort", "expiry_date")
+
+    # Validate sorting method to avoid SQL injection
     if sort not in sorts:
-        sort = "name"
-    ingredients = db.execute("SELECT * FROM ingredients WHERE user_id = ? ORDER BY ?", session["user_id"], sort)
+        sort = "expiry_date"
+
+    ingredients = db.execute(
+        f"SELECT * FROM ingredients WHERE user_id = ? ORDER BY {sort} NULLS LAST", session["user_id"])
 
     # Calculate days remaining
     for ingredient in ingredients:
@@ -129,7 +128,6 @@ def inventory():
     return render_template("inventory.html", ingredients=ingredients, sort=sort)
 
 
-
 @app.route("/inventory/add", methods=["POST"])
 @login_required
 def inventory_add():
@@ -138,9 +136,9 @@ def inventory_add():
         flash("Could not add Ingredient. Please include an Ingredient Name")
         return redirect("/inventory")
     name = request.form.get("name")
-    amount = request.form.get("amount")
-    metric = request.form.get("metric")
-    expiry_date = request.form.get("expiry_date")
+    amount = request.form.get("amount") or None
+    metric = request.form.get("metric") or None
+    expiry_date = request.form.get("expiry_date") or None
 
     db.execute("INSERT INTO ingredients (user_id, name, amount, metric, expiry_date) VALUES (:user_id, :name, :amount, :metric, :expiry_date)",
                user_id=session["user_id"],
@@ -148,7 +146,7 @@ def inventory_add():
                amount=amount,
                metric=metric,
                expiry_date=expiry_date
-    )
+               )
 
     return redirect("/inventory")
 
@@ -158,7 +156,8 @@ def inventory_add():
 def inventory_delete():
     # Remove ingredient
     # Include user_id when deleting to ensure correct ingredient is removed
-    db.execute("DELETE FROM ingredients WHERE user_id = ? AND id = ?", session["user_id"], request.form.get("ingredient_id"))
+    db.execute("DELETE FROM ingredients WHERE user_id = ? AND id = ?",
+               session["user_id"], request.form.get("ingredient_id"))
     flash("Item removed.", "success")
     # redirect back to inventory
     return redirect("/inventory")
@@ -178,13 +177,14 @@ def settings():
         rows = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
         if len(rows) > 0:
             # Update user account with api key
-            db.execute("UPDATE users SET api_key = ? WHERE id = ?", request.form.get("api_key"), session["user_id"])
+            db.execute("UPDATE users SET api_key = ? WHERE id = ?",
+                       request.form.get("api_key"), session["user_id"])
             session["api_key"] = request.form.get("api_key")
             flash("Success! Your details have been updated", "success")
             return redirect("/settings")
 
         flash("Aw snap! Something went wrong. Please try logging in again.", "warning")
-        return render_template("/settings", api_key=session["api_key"])
+        return render_template("settings.html", api_key=session["api_key"])
     else:
         return render_template("settings.html", api_key=session.get("api_key"))
 
@@ -194,12 +194,12 @@ def settings():
 def recipe():
     # Ensure user has an API key
     if session.get("api_key") is None:
-        flash("Please provide an API Key below to enable recipe generation.")
+        flash("Please provide an API Key below to enable recipe generation.", "warning")
         return redirect("/settings")
 
-
     # Determine ingredients list
-    ingredients = db.execute("SELECT * FROM ingredients ORDER BY expiry_date")
+    ingredients = db.execute(
+        "SELECT * FROM ingredients WHERE user_id = ? ORDER BY expiry_date NULLS LAST", session["user_id"])
 
     # Ensure there are enough ingredients for a recipe
     if len(ingredients) < 3:
@@ -209,7 +209,8 @@ def recipe():
     ingredient_strings = []
     for ingredient in ingredients:
         if ingredient["amount"]:
-            ingredient_strings.append(f"{ingredient["name"]} ({ingredient["amount"]}{ingredient["metric"]})")
+            ingredient_strings.append(
+                f"{ingredient['name']} ({ingredient['amount']}{ingredient['metric']})")
         else:
             ingredient_strings.append(f"{ingredient["name"]}")
 
@@ -221,15 +222,31 @@ def recipe():
                     When provided with a list of ingredients, generate a detailed and clear recipe.
                     The list of ingredients is ordered by expiry date in ascending order.
                     Prioritize using ingredients at the beginning of the list.
-                    Your recipe feedback should not mention your analysis of the list of ingredients and the most spoilt food.
+                    Do not mention your analysis of the ingredients or which is closest to expiring.
                     Feedback should only be the recipe itself.
+                    Be creative and avoid defaulting to obvious recipes.
+
+                    Format the recipe as follows:
+                    # [Recipe Title]
+
+                    Servings: [number] | Calories per serving: [number] | Total time: [duration]
+
+                    ### Ingredients
+                    - [ingredient and quantity]
+
+                    ### Instructions
+                    1. [step]
+                    2. [step]
+
+                    Use only the headings shown above. Do not use headings for servings, calories or time. Those are for the summary line.
                     The recipe should be neatly formatted with:
                     - A creative title
                     - Total number of servings yielded
                     - Calories per serving
                     - Total time to make
                     - Ingredients
-                    - Numbered Step-by-Step instructions
+                    - Numbered list of Step-by-Step instructions
+                    The recipe should be well formatted with the Recipe Name, an Ingredients and an Instructions heading.
                     """
 
     # Fetch recipe through Groq API
@@ -257,4 +274,3 @@ def recipe():
     recipe_html = markdown.markdown(recipe_text)
     # Render recipe
     return render_template("recipe.html", recipe=recipe_html)
-

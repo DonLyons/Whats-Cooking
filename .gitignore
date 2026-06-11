@@ -1,3 +1,4 @@
+env/
 *.db
 .env
 flask_session/
