@@ -6,9 +6,12 @@
 {% block body %}
 <div class="card p-4">
     <form action="/settings" method="post">
-        <div class="form-floating mb-3">
-            <input autocomplete=off class="form-control" name="api_key" id="api_key" type="text" placeholder="Groq API Key" {% if api_key %} value="{{ api_key }}" {% endif %}>
-            <label for="api_key">Your Groq API Key</label>
+        <div class="input-group mb-4">
+            <div class="form-floating">
+                <input autocomplete=off class="form-control" name="api_key" id="apiKey" type="password" placeholder="Groq API Key" {% if api_key %} value="{{ api_key }}" {% endif %}>
+                <label for="apiKey">Your Groq API Key</label>
+            </div>
+            <button class="btn btn-secondary px-3" type="button" id="toggleKeyBtn"><i class="bi bi-eye-fill" id="toggleIcon"></i></button>
         </div>
 
         {% if not api_key %}
@@ -24,4 +27,21 @@
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const apiKeyInput = document.getElementById('apiKey');
+    const toggleKeyBtn = document.getElementById('toggleKeyBtn')
+
+    toggleKeyBtn.addEventListener('click', function () {
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            toggleKeyBtn.innerHTML = '<i class="bi bi-eye-slash-fill"></i>';
+        } else {
+            apiKeyInput.type = 'password';
+            toggleKeyBtn.innerHTML = '<i class="bi bi-eye-fill"></i>';
+        }
+    });
+</script>
 {% endblock %}

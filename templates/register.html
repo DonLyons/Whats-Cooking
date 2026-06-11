@@ -13,15 +13,46 @@
                 <div class="mb-3">
                     <input autocomplete="off" autofocus class="form-control w-100" name="email" placeholder="Email" type="email">
                 </div>
-                <div class="mb-3">
-                    <input class="form-control w-100" name="password" placeholder="Password" type="password" minlength="8">
+                <div class="input-group mb-3">
+                    <input class="form-control" name="password" placeholder="Password" id="password" type="password" minlength="8">
+                    <button class="btn btn-outline-primary px-2" type="button" id="toggleKeyBtnPwd"><i class="bi bi-eye-fill" id="toggleIcon1"></i></button>
                 </div>
-                <div class="mb-4">
-                    <input class="form-control w-100" name="confirm" placeholder="Confirm Password" type="password" >
+                <div class="input-group mb-4">
+                    <input class="form-control" name="confirm" placeholder="Confirm Password" id="confirm" type="password" >
+                    <button class="btn btn-outline-primary px-2" type="button" id="toggleKeyBtnCfrm"><i class="bi bi-eye-fill" id="toggleIcon2"></i></button>
                 </div>
                 <button class="btn btn-primary w-100 mt-1" type="submit">Register</button>
             </form>
             <p class="text-muted mt-2">Already have an account? <a href="/login">Sign in here</a></p>
         </div>
     </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    const passwordInput = document.getElementById('password');
+    const passwordConfirmInput = document.getElementById('confirm');
+    const toggleKeyBtnPsw = document.getElementById('toggleKeyBtnPwd')
+    const toggleKeyBtnCfrm = document.getElementById('toggleKeyBtnCfrm')
+
+    toggleKeyBtnPsw.addEventListener('click', function () {
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleKeyBtnPsw.innerHTML = '<i class="bi bi-eye-slash-fill"></i>';
+        } else {
+            passwordInput.type = 'password';
+            toggleKeyBtnPsw.innerHTML = '<i class="bi bi-eye-fill"></i>';
+        }
+    });
+
+    toggleKeyBtnCfrm.addEventListener('click', function () {
+        if (passwordConfirmInput.type === 'password') {
+            passwordConfirmInput.type = 'text';
+            toggleKeyBtnCfrm.innerHTML = '<i class="bi bi-eye-slash-fill"></i>';
+        } else {
+            passwordConfirmInput.type = 'password';
+            toggleKeyBtnCfrm.innerHTML = '<i class="bi bi-eye-fill"></i>';
+        }
+    });
+</script>
 {% endblock %}
