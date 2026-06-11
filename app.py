@@ -1,10 +1,11 @@
-from cs50 import SQL
 from datetime import date
 from flask import Flask, flash, redirect, render_template, request, session
 from groq import Groq
 from helpers import login_required
 import markdown
 import os
+import psycopg2
+import psycopg2.extras
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Configure app
@@ -14,7 +15,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 
 # Set up database
-db = SQL("sqlite:///whats_cooking.db")
+connection = psycopg2.connect(os.environ.get("DATABASE_URL"))
 
 
 @app.route("/")
@@ -34,7 +35,10 @@ def login():
             return redirect("/login")
 
         # Determine if account exists
-        rows = db.execute("SELECT * FROM users WHERE email = ?", request.form.get('email'))
+        with connection:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute("SELECT * FROM users WHERE email = %s", request.form.get('email'))
+                rows = cursor.fetchall()
 
         if len(rows) > 0:
             if check_password_hash(rows[0]["hash"], request.form.get("password")):
@@ -73,7 +77,10 @@ def register():
         # Basic Password and Email validation on html, TODO Live validation to be implemented
 
         # Ensure user is not already registered
-        rows = db.execute("SELECT * FROM users WHERE email = ?", request.form.get("email"))
+        with connection:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute("SELECT * FROM users WHERE email = ?", request.form.get("email"))
+                rows = cursor.fetchall()
         if len(rows) > 0:
             flash(
                 f"Account with this email ({request.form.get('email')}) already exists.", "warning")
@@ -81,13 +88,18 @@ def register():
             # TODO: Ask user if they want to proceed to login. Perhaps pop-up style
 
         # Add user to database
-        db.execute("INSERT INTO users (email, hash) VALUES (?, ?)",
-                   request.form.get("email"),
-                   generate_password_hash(request.form.get("password"))
-                   )
+        with connection:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute("INSERT INTO users (email, hash) VALUES (%s, %s)",
+                                request.form.get("email"),
+                                generate_password_hash(request.form.get("password"))
+                                )
 
         # Log user in
-        rows = db.execute("SELECT * FROM users WHERE email = ?", request.form.get("email"))
+        with connection:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute("SELECT * FROM users WHERE email = %s", request.form.get("email"))
+                rows = cursor.fetchall()
         session["user_id"] = rows[0]["id"]
         # Inform user of success
         flash("Success! Welcome to What's Cooking?", "success")
@@ -112,8 +124,10 @@ def inventory():
     if sort not in sorts:
         sort = "expiry_date"
 
-    ingredients = db.execute(
-        f"SELECT * FROM ingredients WHERE user_id = ? ORDER BY {sort} NULLS LAST", session["user_id"])
+    with connection:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(f"SELECT * FROM ingredients WHERE user_id = %s ORDER BY {sort} NULLS LAST", session["user_id"])
+            ingredients = cursor.fetchall()
 
     # Calculate days remaining
     for ingredient in ingredients:
@@ -139,14 +153,15 @@ def inventory_add():
     amount = request.form.get("amount") or None
     metric = request.form.get("metric") or None
     expiry_date = request.form.get("expiry_date") or None
-
-    db.execute("INSERT INTO ingredients (user_id, name, amount, metric, expiry_date) VALUES (:user_id, :name, :amount, :metric, :expiry_date)",
-               user_id=session["user_id"],
-               name=name,
-               amount=amount,
-               metric=metric,
-               expiry_date=expiry_date
-               )
+    with connection:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute("INSERT INTO ingredients (user_id, name, amount, metric, expiry_date) VALUES (%(user_id)s, %(name)s, %(amount)s, %(metric)s, %(expiry_date)s)", {
+                    "user_id":session["user_id"],
+                    "name":name,
+                    "amount":amount,
+                    "metric":metric,
+                    "expiry_date":expiry_date
+                    })
 
     return redirect("/inventory")
 
@@ -156,8 +171,13 @@ def inventory_add():
 def inventory_delete():
     # Remove ingredient
     # Include user_id when deleting to ensure correct ingredient is removed
-    db.execute("DELETE FROM ingredients WHERE user_id = ? AND id = ?",
-               session["user_id"], request.form.get("ingredient_id"))
+    with connection:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute("DELETE FROM ingredients WHERE user_id = %s AND id = %s",
+                    session["user_id"],
+                    request.form.get("ingredient_id")
+                    )
+            
     flash("Item removed.", "success")
     # redirect back to inventory
     return redirect("/inventory")
@@ -174,11 +194,18 @@ def settings():
             return redirect("/settings")
 
         # Find user account
-        rows = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])
+        with connection:
+            with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute("SELECT * FROM users WHERE id = %s", session["user_id"])
+                rows = cursor.fetchall()
         if len(rows) > 0:
             # Update user account with api key
-            db.execute("UPDATE users SET api_key = ? WHERE id = ?",
-                       request.form.get("api_key"), session["user_id"])
+            with connection:
+                with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                    cursor.execute("UPDATE users SET api_key = %s WHERE id = %s",
+                            request.form.get("api_key"),
+                            session["user_id"]
+                            )
             session["api_key"] = request.form.get("api_key")
             flash("Success! Your details have been updated", "success")
             return redirect("/settings")
@@ -198,8 +225,11 @@ def recipe():
         return redirect("/settings")
 
     # Determine ingredients list
-    ingredients = db.execute(
-        "SELECT * FROM ingredients WHERE user_id = ? ORDER BY expiry_date NULLS LAST", session["user_id"])
+    with connection:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(
+                "SELECT * FROM ingredients WHERE user_id = %s ORDER BY expiry_date NULLS LAST", session["user_id"])
+            ingredients = cursor.fetchall()
 
     # Ensure there are enough ingredients for a recipe
     if len(ingredients) < 3:
