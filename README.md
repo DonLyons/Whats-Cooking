@@ -55,6 +55,7 @@ How often have you thrown out food because you forgot it was in the furthest cor
 
 ## Project Structure
 
+```
 Whats-Cooking/
 ├── app.py                  # Flask routes and logic
 ├── helpers.py              # login_required decorator
@@ -69,6 +70,7 @@ Whats-Cooking/
     ├── inventory.html      # Pantry Management
     ├── recipe.html         # AI-generated recipe display
     └── settings.html       # Groq API key management
+```
 
 ## How It Works
 
@@ -121,7 +123,7 @@ expiry_date = request.form.get("expiry_date") or None
 ## Getting Started!
 
 ### Try the Live App
-The easiest way is the [hosted version on Render](https://whats-cooking-zvk1.onrender.com/). Register, grab an API key from [Groq]() and you are all set! Lettuce celebrate! (Get it? 🥬)
+The easiest way is the [hosted version on Render](https://whats-cooking-zvk1.onrender.com/). Register, grab an API key from [Groq](https://groq.com) and you are all set! Lettuce celebrate! (Get it? 🥬)
 
 ## Future Improvements
 
