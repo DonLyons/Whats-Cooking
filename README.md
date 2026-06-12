@@ -1,6 +1,6 @@
 <h1>
     &nbsp;
-    <img src="static/cooking.svg" width="50" valign="middle"/>
+    <img src="static/cooking_grey.svg" width="50" valign="middle"/>
     &nbsp;
     What's Cooking?
 </h1>
