@@ -15,9 +15,10 @@
 ![Render](https://img.shields.io/badge/Hosted_on-Render-46E3B7?style=flat&logo=render&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
-**[Live Hosted Demo](https://whats-cooking-zvk1.onrender.com/)** - Try it!
-<br/>Note: Render's free tier spins down after inactivity. The first load may take 30-60 seconds to wake up.
-**[Video Demo](https://youtu.be/76ibmWeKFpk)** - Watch it!
+**[Live Hosted Demo](https://whats-cooking-zvk1.onrender.com/)** - Try it! &nbsp; **|** &nbsp; **[Video Demo](https://youtu.be/76ibmWeKFpk)** - Watch it!
+
+> Note: Render's free tier spins down after inactivity. The first load may take 30-60 seconds to wake up.
+
 
 ## The Problem It Solves
 How often have you thrown out food because you forgot it was in the furthest corner of the fridge? ***What's Cooking?*** keeps track of your pantry, warns you when items are expiring soon, and uses AI to generate a recipe that makes use of them before they become waste.
