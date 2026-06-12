@@ -123,7 +123,9 @@ expiry_date = request.form.get("expiry_date") or None
 ## Getting Started!
 
 ### Try the Live App
-The easiest way is the [hosted version on Render](https://whats-cooking-zvk1.onrender.com/). Register, grab an API key from [Groq](https://groq.com) and you are all set! Lettuce celebrate! (Get it? 🥬)
+The easiest way is the [hosted version on Render](https://whats-cooking-zvk1.onrender.com/). Register, grab an API key from [Groq](https://groq.com) and you are all set!
+
+Lettuce celebrate! (Get it? 🥬)
 
 ## Future Improvements
 
