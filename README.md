@@ -5,7 +5,7 @@
     What's Cooking?
 </h1>
 
-> **An AI-powered pantry manager that generates creative recipes from ingredients you have and prioritizing what's closest to expiry so nothing goes to waste.**
+> **An AI-powered pantry manager that generates creative recipes from your ingredients, prioritizing what's closest to expiry so nothing goes to waste.**
 
 ![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.x-00000?style=flat&logo=flask&logoColor=white)
@@ -29,12 +29,12 @@ How often have you thrown out food because you forgot it was in the furthest cor
     - Secure registration and login with Werkzeug password hashing
 - **Persistent pantry management**
     - Add ingredients with optional inputs (amount, unit & expiry), delete with one click
+- **AI recipe generation**
+    - Single click recipe generation via Groq's LLaMA 3.3 70B, which has been prompted to prioritise soon-to-expire elements
 - **Expiry tracking**
     - Colour-coded countdown badges show what's expiring soon (red <= 2 days, amber <= 7 days & green for expiry dates further away)
 - **Smart sorting** 
     - Sort the pantry by expiry date, name, or amount. NULL expiry dates always sort last
-- **AI recipe generation**
-    - Single click recipe generation via Groq's LLaMA 3.3 70B, which has been prompted to prioritise soon-to-expire elements
 - **User Unique API Key storage**
     - Users supply their own Groq API key, stored securely in the database
 - **Responsive Design**
