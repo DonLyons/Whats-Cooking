@@ -144,6 +144,10 @@ Lettuce celebrate! (Get it? 🥬)
 - [Flaticon](https://www.flaticon.com/) - Website logo
 - [favicon.io](https://favicon.io) - Browser tab icon
 
+# License
+MIT
+
 ---
 
 *Initially built from scratch as a CS50 final project, refined for portfolio piece demonstrating full-stack Python web development.*
+
