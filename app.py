@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from flask import Flask, flash, redirect, render_template, request, session
 from groq import Groq
 from helpers import login_required
@@ -13,6 +13,8 @@ app = Flask(__name__)
 
 # Default Flask Cookie sessions
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+# Kick user out if inactive for more than 30 minutes
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 # Set up database
 connection = psycopg2.connect(os.environ.get("DATABASE_URL"))
@@ -28,6 +30,7 @@ def login():
     if request.method == "POST":
         # Clear previous data for new user
         session.clear()
+        session.permanent = True
 
         # Ensure the credentials are present and correct and log user in
         if not request.form.get("email") or not request.form.get("password"):
@@ -64,7 +67,7 @@ def logout():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        # Handle registration
+    # Handle registration
 
         # Validation
         if not request.form.get("email") or not request.form.get("password") or not request.form.get("confirm"):
