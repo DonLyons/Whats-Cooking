@@ -5,7 +5,7 @@
     What's Cooking?
 </h1>
 
-> **An AI-powered pantry manager that generates creative recipes from ingredients you have and prioritizing what's closest to expiry so nothing goes to waste.**
+> **An AI-powered pantry manager that generates creative recipes from your ingredients, prioritizing what's closest to expiry so nothing goes to waste.**
 
 ![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat&logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-3.x-00000?style=flat&logo=flask&logoColor=white)
@@ -15,9 +15,10 @@
 ![Render](https://img.shields.io/badge/Hosted_on-Render-46E3B7?style=flat&logo=render&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 
-**[Live Hosted Demo](https://whats-cooking-zvk1.onrender.com/)** - Try it!
-<br/>Note: Render's free tier spins down after inactivity. The first load may take 30-60 seconds to wake up.
-**[Video Demo](https://youtu.be/76ibmWeKFpk)** - Watch it!
+**[Live Hosted Demo](https://whats-cooking-zvk1.onrender.com/)** - Try it! &nbsp; **|** &nbsp; **[Video Demo](https://youtu.be/76ibmWeKFpk)** - Watch it!
+
+> Note: Render's free tier spins down after inactivity. The first load may take 30-60 seconds to wake up.
+
 
 ## The Problem It Solves
 How often have you thrown out food because you forgot it was in the furthest corner of the fridge? ***What's Cooking?*** keeps track of your pantry, warns you when items are expiring soon, and uses AI to generate a recipe that makes use of them before they become waste.
@@ -28,12 +29,12 @@ How often have you thrown out food because you forgot it was in the furthest cor
     - Secure registration and login with Werkzeug password hashing
 - **Persistent pantry management**
     - Add ingredients with optional inputs (amount, unit & expiry), delete with one click
+- **AI recipe generation**
+    - Single click recipe generation via Groq's LLaMA 3.3 70B, which has been prompted to prioritise soon-to-expire elements
 - **Expiry tracking**
     - Colour-coded countdown badges show what's expiring soon (red <= 2 days, amber <= 7 days & green for expiry dates further away)
 - **Smart sorting** 
     - Sort the pantry by expiry date, name, or amount. NULL expiry dates always sort last
-- **AI recipe generation**
-    - Single click recipe generation via Groq's LLaMA 3.3 70B, which has been prompted to prioritise soon-to-expire elements
 - **User Unique API Key storage**
     - Users supply their own Groq API key, stored securely in the database
 - **Responsive Design**
@@ -54,6 +55,7 @@ How often have you thrown out food because you forgot it was in the furthest cor
 
 ## Project Structure
 
+```
 Whats-Cooking/
 ├── app.py                  # Flask routes and logic
 ├── helpers.py              # login_required decorator
@@ -68,6 +70,7 @@ Whats-Cooking/
     ├── inventory.html      # Pantry Management
     ├── recipe.html         # AI-generated recipe display
     └── settings.html       # Groq API key management
+```
 
 ## How It Works
 
@@ -120,7 +123,9 @@ expiry_date = request.form.get("expiry_date") or None
 ## Getting Started!
 
 ### Try the Live App
-The easiest way is the [hosted version on Render](https://whats-cooking-zvk1.onrender.com/). Register, grab an API key from [Groq]() and you are all set! Lettuce celebrate! (Get it? 🥬)
+The easiest way is the [hosted version on Render](https://whats-cooking-zvk1.onrender.com/). Register, grab an API key from [Groq](https://groq.com) and you are all set!
+
+Lettuce celebrate! (Get it? 🥬)
 
 ## Future Improvements
 
@@ -139,6 +144,10 @@ The easiest way is the [hosted version on Render](https://whats-cooking-zvk1.onr
 - [Flaticon](https://www.flaticon.com/) - Website logo
 - [favicon.io](https://favicon.io) - Browser tab icon
 
+# License
+MIT
+
 ---
 
 *Initially built from scratch as a CS50 final project, refined for portfolio piece demonstrating full-stack Python web development.*
+
