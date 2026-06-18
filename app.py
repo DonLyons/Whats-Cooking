@@ -41,7 +41,7 @@ def get_db():
                 maxconn=10,
                 dsn=os.environ.get("DATABASE_URL")
             )
-            # open a new connection
+            # Borrow a new connection
             g.db = connection_pool.getconn()
         return g.db
 
