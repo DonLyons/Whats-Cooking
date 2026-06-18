@@ -1,10 +1,11 @@
 from datetime import date, timedelta
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, g
 from groq import Groq
 from helpers import login_required
 import markdown
 import os
 import psycopg2
+from psycopg2 import pool
 import psycopg2.extras
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -16,8 +17,43 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 # Kick user out if inactive for more than 30 minutes
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
-# Set up database
-connection = psycopg2.connect(os.environ.get("DATABASE_URL"))
+# Set up connection pool for speed
+connection_pool = pool.ThreadedConnectionPool(
+    minconn=1,
+    maxconn=10,
+    dsn=os.environ.get("DATABASE_URL")
+)
+
+# Database connection
+def get_db():
+    global connection_pool
+    # Check if connection is open in g
+    if "db" not in g:
+        # Test if the Neon database connection has not yet timed out, else replace connection
+        try:
+            conn = connection_pool.getconn()
+            conn.cursor().execute("SELECT 1")
+            g.db = conn
+        # Create a new pool if the Neon DB connections have expired
+        except Exception:
+            connection_pool = pool.ThreadedConnectionPool(
+                minconn=1,
+                maxconn=10,
+                dsn=os.environ.get("DATABASE_URL")
+            )
+            # open a new connection
+            g.db = connection_pool.getconn()
+        return g.db
+
+
+# Close connection at end of every request
+@app.teardown_appcontext
+def close_db(error):
+    # Remove connection from g else return None if there is no connection
+    db = g.pop("db", None)
+    # Close connection if active
+    if db is not None:
+        connection_pool.putconn(db)
 
 
 @app.route("/")
@@ -38,7 +74,7 @@ def login():
             return redirect("/login")
 
         # Determine if account exists
-        with connection:
+        with get_db() as connection:
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute("SELECT * FROM users WHERE email = %s", [request.form.get('email')])
                 rows = cursor.fetchall()
@@ -80,7 +116,7 @@ def register():
         # Basic Password and Email validation on html, TODO Live validation to be implemented
 
         # Ensure user is not already registered
-        with connection:
+        with get_db() as connection:
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute("SELECT * FROM users WHERE email = %s", [request.form.get('email')])
                 rows = cursor.fetchall()
@@ -90,7 +126,7 @@ def register():
             return redirect("/register")
 
         # Add user to database
-        with connection:
+        with get_db() as connection:
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute("INSERT INTO users (email, hash) VALUES (%s, %s)",
                                 [request.form.get("email"),
@@ -98,7 +134,7 @@ def register():
                                 ])
 
         # Log user in
-        with connection:
+        with get_db() as connection:
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute("SELECT * FROM users WHERE email = %s", [request.form.get("email")])
                 rows = cursor.fetchall()
@@ -126,7 +162,7 @@ def inventory():
     if sort not in sorts:
         sort = "expiry_date"
 
-    with connection:
+    with get_db() as connection:
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(f"SELECT * FROM ingredients WHERE user_id = %s ORDER BY {sort} NULLS LAST", [session["user_id"]])
             ingredients = cursor.fetchall()
@@ -155,7 +191,7 @@ def inventory_add():
     amount = request.form.get("amount") or None
     metric = request.form.get("metric") or None
     expiry_date = request.form.get("expiry_date") or None
-    with connection:
+    with get_db() as connection:
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute("INSERT INTO ingredients (user_id, name, amount, metric, expiry_date) VALUES (%(user_id)s, %(name)s, %(amount)s, %(metric)s, %(expiry_date)s)", {
                     "user_id":session["user_id"],
@@ -173,7 +209,7 @@ def inventory_add():
 def inventory_delete():
     # Remove ingredient
     # Include user_id when deleting to ensure correct ingredient is removed
-    with connection:
+    with get_db() as connection:
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute("DELETE FROM ingredients WHERE user_id = %s AND id = %s",
                     [session["user_id"],
@@ -196,13 +232,13 @@ def settings():
             return redirect("/settings")
 
         # Find user account
-        with connection:
+        with get_db() as connection:
             with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                 cursor.execute("SELECT * FROM users WHERE id = %s", [session["user_id"]])
                 rows = cursor.fetchall()
         if len(rows) > 0:
             # Update user account with api key
-            with connection:
+            with get_db() as connection:
                 with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
                     cursor.execute("UPDATE users SET api_key = %s WHERE id = %s",
                             [request.form.get("api_key"),
@@ -228,7 +264,7 @@ def recipe():
         return redirect("/settings")
 
     # Determine ingredients list
-    with connection:
+    with get_db() as connection:
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
                 "SELECT * FROM ingredients WHERE user_id = %s ORDER BY expiry_date NULLS LAST", [session["user_id"]])
