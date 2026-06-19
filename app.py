@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from flask import Flask, flash, redirect, render_template, request, session, g
 from groq import Groq
 from helpers import login_required
@@ -199,6 +199,80 @@ def inventory_add():
                     "amount":amount,
                     "metric":metric,
                     "expiry_date":expiry_date
+                    })
+
+    return redirect("/inventory")
+
+@app.route("/inventory/bulk-add", methods=["POST"])
+@login_required
+def inventory_bulk_add():
+    # Get ingredient string
+    ingredients = request.form.get("ingredients_input")
+    if not ingredients:
+        flash("Could not add Ingredient. Please include ingredient information.")
+        return redirect("/inventory")
+    
+    # Format ingredients via Groq (handles variety in input better)
+
+    system_prompt = """
+                You will be provided with a list of kitchen ingredients and will format it into a strict output as described below.
+                The user has been instructed to place each ingredient and its details on a single line, creating a list of lines, each containing a unique ingredients details.
+                You have to format the ingredients given into a comma seperated output as per the format given below.
+                If any ingredient aspects are missing you should enter "None" instead.
+                Your feedback/output may only consist of the comma seperated lines of ingredients. 
+                You may never provide any comments or information other than the comma seperated lines of output. 
+
+                Output format:
+                ingredient_name,amount,metric,expiry_date(ISO Format)
+    """
+
+    # Set up Groq exchange
+    client = Groq(api_key=session.get("api_key"))
+
+    # Send request
+    chat_completion = client.chat.completions.create(
+        messages=[
+            # System Message
+            {
+                "role": "system",
+                "content": system_prompt,
+            },
+            # Set a user message for the assistant to respond to.
+            {
+                "role": "user",
+                "content": f"Here is the list of ingredients, each line describing a single ingredient: {ingredients}",
+            }
+        ],
+
+        # The language model.
+        model="llama-3.3-70b-versatile"
+    )
+
+    # Extract feedback
+    csv_ingredients = chat_completion.choices[0].message.content
+
+    # Loop through ingredients, validate and write to database
+    with get_db() as connection:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            for ingredient_line in csv_ingredients.splitlines():
+                name, amount, metric, expiry_date = ingredient_line.split(',')
+                if name ==  "None":
+                    flash("Could not add an ingredient. Ingredient Name was not found.")
+                    continue
+                
+                if amount.strip() == "None":
+                    amount = None
+                if metric.strip() == "None":
+                    metric = None
+                if expiry_date.strip() == "None":
+                    expiry_date == None
+                
+                cursor.execute("INSERT INTO ingredients (user_id, name, amount, metric, expiry_date) VALUES (%(user_id)s, %(name)s, %(amount)s, %(metric)s, %(expiry_date)s)", {
+                    "user_id":session["user_id"],
+                    "name":name,
+                    "amount":amount,
+                    "metric":metric,
+                    "expiry_date":datetime.strptime(expiry_date, "%Y-%m-%d")
                     })
 
     return redirect("/inventory")
