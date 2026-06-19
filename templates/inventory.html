@@ -21,54 +21,28 @@
             <a href="/inventory?sort=name" class="btn btn-sm rounded-pill {% if sort == 'name' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Sort By Name</a>
             <a href="/inventory?sort=amount" class="btn btn-sm rounded-pill {% if sort == 'amount' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Sort By Amount</a>
         </div>
-        <!-- Trigger -->
-        <button class="btn btn-sm rounded-pill btn-primary mb-1"
-                data-bs-toggle="modal"
-                data-bs-target="#addIngredientModal">
-                + Add Ingredient
-        </button>
+        <!-- Add ingredient Dropdown Menu -->
+         <div class="dropdown">
+            <button class="btn btn-primary rounded-pill dropdown-toggle" type="button" data-bs-toggle="dropdown">+ Add Ingredient</button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addSingleModal">
+                    Manual Entry
+                </a></li>
+                <li><a class="dropdown-item"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addBulkModal">
+                    Bulk Import
+                </a></li>
+                <li><a class="dropdown-item"
+                    data-bs-toggle="modal"
+                    data-bs-target="#addScanModal">
+                    AI Camera Scan
+                </a></li>
+            </ul>
+         </div>
     </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="addIngredientModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Ingredient</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <form action="/inventory/add" method="post">
-                        <input autofocus autocomplete="off" name="name" type="text" placeholder="Ingredient Name*" class="form-control w-100 mb-3 mt-3">
-
-
-                        <div class="d-flex gap-2 mb-2">
-                            <input name="amount"  type="number" placeholder="Amount" class="form-control w-75">
-
-                            <select class="form-select form-control w-25" name="metric" >
-                                <option value="">No Unit</option>
-                                <option value="g">g</option>
-                                <option value="kg">kg</option>
-                                <option value="ml">ml</option>
-                                <option value="L">L</option>
-                                <option value="units">units</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="expiry_date" class="form-label d-block text-start">Expiry Date</label>
-                            <input name="expiry_date" id="expiry_date" type="date" class="form-control">
-                        </div>
-                        <div class="text-end">
-                            <button class="btn btn-primary mt-3 w-25" type="submit">Save</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
 
     {% if ingredients|length == 0 %}
         <div class="text-center mt-5">
@@ -113,5 +87,80 @@
     </div>
 </div>
 
+<!-- Modals -->
+    <div class="modal fade" id="addSingleModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Ingredient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form action="/inventory/add" method="post">
+                        <div class="mb-3">
+                            <label for="name" class="form-label d-block text-start">Name</label>
+                            <input autofocus autocomplete="off" name="name" id="name" type="text" placeholder="Ingredient Name" class="form-control w-100 mb-3">
+                        </div>
+                        
+                        <label for="amount" class="form-label d-block text-start">Amount and Metric</label>
+                        <div class="d-flex gap-2 mb-2">
+                            <input name="amount" id="amount" type="number" placeholder="Amount" class="form-control w-75">
+
+                            <select class="form-select form-control w-25" name="metric" >
+                                <option value="">No Unit</option>
+                                <option value="g">g</option>
+                                <option value="kg">kg</option>
+                                <option value="ml">ml</option>
+                                <option value="L">L</option>
+                                <option value="units">units</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="expiry_date" class="form-label d-block text-start">Expiry Date</label>
+                            <input name="expiry_date" id="expiry_date" type="date" class="form-control">
+                        </div>
+                        <div class="text-end">
+                            <button class="btn btn-primary rounded-pill mt-3 w-25" type="submit">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="addBulkModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered text-start">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Ingredients</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="/inventory/bulk-add" method="post">
+                        <p class="fw-medium">Type or paste your ingredients below</p>
+                        <textarea autofocus class="form-control" placeholder="Include ingredient amount, metric and expiry date where applicable" id="ta-bulk-ingredients" rows="5" cols="60"></textarea>
+                        <div class="text-end">
+                            <button class="btn btn-primary rounded-pill shadow-sm mt-3 w-25" type="submit">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="addScanModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Ingredient</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-semibold">Coming Soon!</p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
