@@ -71,7 +71,10 @@
                 <!-- To push badge to bottom of card -->
                 <div class="mt-auto">
                     {% if ingredient.days_remaining is not none %}
-                        {% if ingredient.days_remaining <= 2 %}
+                        {% if ingredient.days_remaining < 0 %}
+                            {% set days_past = ingredient.days_remaining * -1 %}
+                            <span class="badge expired py-2 w-100">Expired {{ days_past }}{% if days_past != 1 %} days{% else %} day{% endif %} ago</span>
+                        {% elif ingredient.days_remaining <= 2 %}
                             <span class="badge bg-danger py-2 w-100">Expires in {{ ingredient.days_remaining }}{% if ingredient.days_remaining != 1 %} days{% else %} day{% endif %}</span>
                         {% elif ingredient.days_remaining <= 7 %}
                             <span class="badge expiry-soon py-2 w-100">Expires in {{ ingredient.days_remaining }}{% if ingredient.days_remaining != 1 %} days{% else %} day{% endif %}</span>

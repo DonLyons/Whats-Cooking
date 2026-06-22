@@ -111,6 +111,11 @@ a:hover {
     color: #6b5a00 !important;
 }
 
+.expired {
+    background-color: rgba(108, 100, 90, 0.4) !important;
+    color: #3a342e !important;
+}
+
 .bg-success {
     background-color: rgba(25, 135, 84, 0.4) !important;
     color: #0a3622 !important;
