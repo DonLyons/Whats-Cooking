@@ -4,7 +4,7 @@
 
 
 {% block body %}
-<div class="card p-4">
+<div class="card p-4 shadow">
     <form action="/settings" method="post">
         <div class="input-group mb-4">
             <div class="form-floating">
@@ -22,8 +22,8 @@
             </div>
         {% endif %}
         <div class="d-flex justify-content-end gap-2">
-            <button class="btn btn-primary" style="min-width: 100px;" type="submit">Save</button>
-            <a href="/settings" class="btn btn-outline-secondary" style="min-width: 100px;">Cancel</a>
+            <button class="btn btn-primary shadow-sm" style="min-width: 100px;" type="submit">Save</button>
+            <a href="/settings" class="btn btn-outline-secondary shadow-sm" style="min-width: 100px;">Cancel</a>
         </div>
     </form>
 </div>

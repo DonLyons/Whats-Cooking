@@ -80,7 +80,7 @@
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
         {% for ingredient in ingredients %}
         <div class="col">
-            <div class="card h-100 shadow-sm p-4 position-relative">
+            <div class="card h-100 shadow p-4 position-relative">
                 <!-- Delete -->
                 <form action="/inventory/delete" method="post">
                     <input type="hidden" name="ingredient_id" value="{{ ingredient.id }}">
@@ -113,5 +113,6 @@
     </div>
 </div>
 
+<div style="margin-bottom: 20%;"></div>
 {% endblock %}
 

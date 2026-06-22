@@ -9,12 +9,15 @@
     <p class="text-muted">Generated from your pantry of ingredients, prioritising ingredients closest to expiry.</p>
 </div>
 
-<div class="card shadow-sm border-0 py-4 px-5 text-start">
+<div class="card shadow border-0 py-4 px-5 text-start">
     <p>{{ recipe|safe }}</p>
+
+    <div class="mt-4 d-flex gap-3" style="justify-content: right;">
+        <a href="/recipe" class="btn btn-primary shadow">Generate Another</a>
+        <a href="/inventory" class="btn btn-outline-secondary shadow">Back to Pantry</a>
+    </div>
 </div>
 
-<div class="mt-4 d-flex gap-2">
-    <a href="/recipe" class="btn btn-primary">Generate Another</a>
-    <a href="/inventory" class="btn btn-outline-secondary">Back to Pantry</a>
-</div>
+<div style="margin-bottom: 10%;"></div>
+
 {% endblock %}
