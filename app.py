@@ -187,7 +187,7 @@ def inventory_add():
     if not request.form.get("name"):
         flash("Could not add Ingredient. Please include an Ingredient Name")
         return redirect("/inventory")
-    name = request.form.get("name")
+    name = request.form.get("name").title()
     amount = request.form.get("amount") or None
     metric = request.form.get("metric") or None
     expiry_date = request.form.get("expiry_date") or None
@@ -214,15 +214,21 @@ def inventory_bulk_add():
     
     # Format ingredients via Groq (handles variety in input better)
 
-    system_prompt = """
+    system_prompt = f"""
+                Today's date is {date.today().isoformat()}.
                 You will be provided with a list of kitchen ingredients and will format it into a strict output as described below.
-                The user has been instructed to place each ingredient and its details on a single line, creating a list of lines, each containing a unique ingredients details.
+                The user has been instructed to place each ingredient and its details on a single line, creating a list of lines, each containing a unique ingredient's details.
                 You have to format the ingredients given into a comma seperated output as per the format given below.
-                If any ingredient aspects are missing you should enter "None" instead.
+                If any ingredient details (such as the name, amount, metric, expiry_date) are missing you should enter "None" instead for that field.
                 Your feedback/output may only consist of the comma seperated lines of ingredients. 
-                You may never provide any comments or information other than the comma seperated lines of output. 
-
-                Output format:
+                You may never provide any comments or information other than the comma seperated lines of output.
+                If a relative date is given for the expiry date, such as "7 days from now" or "2 weeks", calculate the date by adding the duration to today's date ({date.today().isoformat()}, and substitute that into the expiry date field. 
+                If the date given excludes the year, assume that the current year is being referred to.
+                Dates should be formatted to ISO format (yyyy-mm-dd).
+                Spelling errors should be corrected in the output.
+                Ingredient namees should be in title case.
+                
+                Output format to follow strictly:
                 ingredient_name,amount,metric,expiry_date(ISO Format)
     """
 
@@ -260,19 +266,24 @@ def inventory_bulk_add():
                     flash("Could not add an ingredient. Ingredient Name was not found.")
                     continue
                 
-                if amount.strip() == "None":
+                if amount.strip() in ["None", "none"]:
                     amount = None
-                if metric.strip() == "None":
+                if metric.strip() in ["None", "none"]:
                     metric = None
-                if expiry_date.strip() == "None":
-                    expiry_date == None
+                if expiry_date.strip() in ["None", "none"]:
+                    expiry_date = None
+                else:
+                    try:
+                        expiry_date = datetime.strptime(expiry_date, "%Y-%m-%d")
+                    except (ValueError, TypeError):
+                        expiry_date = None
                 
                 cursor.execute("INSERT INTO ingredients (user_id, name, amount, metric, expiry_date) VALUES (%(user_id)s, %(name)s, %(amount)s, %(metric)s, %(expiry_date)s)", {
                     "user_id":session["user_id"],
                     "name":name,
                     "amount":amount,
                     "metric":metric,
-                    "expiry_date":datetime.strptime(expiry_date, "%Y-%m-%d")
+                    "expiry_date":expiry_date
                     })
 
     return redirect("/inventory")
@@ -341,7 +352,7 @@ def recipe():
     with get_db() as connection:
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute(
-                "SELECT * FROM ingredients WHERE user_id = %s ORDER BY expiry_date NULLS LAST", [session["user_id"]])
+                "SELECT * FROM ingredients WHERE user_id = %s ORDER BY expiry_date NULLS LAST", [session['user_id']])
             ingredients = cursor.fetchall()
 
     # Ensure there are enough ingredients for a recipe
@@ -353,7 +364,7 @@ def recipe():
     for ingredient in ingredients:
         if ingredient["amount"]:
             ingredient_strings.append(
-                f"{ingredient['name']} ({ingredient['amount']}{ingredient['metric']})")
+                f"{ingredient['name']} ({ingredient['amount']}{ingredient['metric'] if ingredient['metric'] else ''})")
         else:
             ingredient_strings.append(f"{ingredient['name']}")
 
