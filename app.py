@@ -203,6 +203,34 @@ def inventory_add():
 
     return redirect("/inventory")
 
+@app.route("/inventory/edit", methods=["POST"])
+@login_required
+def inventory_edit():
+    # Add a new ingredient
+    if not request.form.get("name"):
+        flash("Please include an Ingredient Name")
+        return redirect("/inventory")
+    name = request.form.get("name").title()
+    amount = request.form.get("amount") or None
+    metric = request.form.get("metric") or None
+    expiry_date = request.form.get("expiry_date") or None
+    id = request.form.get("id_edit")
+    if not id:
+        flash("An error has occured")
+        return redirect("/inventory")
+
+    with get_db() as connection:
+        with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute("UPDATE ingredients SET name = %(name)s, amount = %(amount)s, metric = %(metric)s, expiry_date = %(expiry_date)s WHERE id = %(id)s", {
+                    "name":name,
+                    "amount":amount,
+                    "metric":metric,
+                    "expiry_date":expiry_date,
+                    "id":id
+                    })
+
+    return redirect("/inventory")
+
 @app.route("/inventory/bulk-add", methods=["POST"])
 @login_required
 def inventory_bulk_add():
@@ -298,7 +326,7 @@ def inventory_delete():
         with connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
             cursor.execute("DELETE FROM ingredients WHERE user_id = %s AND id = %s",
                     [session["user_id"],
-                    request.form.get("ingredient_id")
+                    request.form.get("id_delete")
                     ])
             
     flash("Item removed.", "success")

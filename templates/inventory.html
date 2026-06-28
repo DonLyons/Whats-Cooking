@@ -23,7 +23,7 @@
         </div>
         <!-- Add ingredient Dropdown Menu -->
          <div class="dropdown">
-            <button class="btn btn-primary rounded-pill dropdown-toggle shadow" type="button" data-bs-toggle="dropdown">+ Add Ingredient</button>
+            <button class="btn btn-primary rounded-pill dropdown-toggle shadow" type="button" data-bs-toggle="dropdown" id="add_ingredient">+ Add Ingredient</button>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item"
                     data-bs-toggle="modal"
@@ -56,10 +56,22 @@
         <div class="col">
             <div class="card h-100 shadow p-4 position-relative">
                 <!-- Delete -->
-                <form action="/inventory/delete" method="post">
-                    <input type="hidden" name="ingredient_id" value="{{ ingredient.id }}">
-                    <button type="submit" class="btn-close position-absolute top-0 end-0 m-2"></button>
-                </form>
+                <div class="ingredient-card-buttons">
+                    <button class="btn-edit"
+                        data-id="{{ ingredient.id }}"
+                        data-name="{{ ingredient.name }}"
+                        data-amount="{{ ingredient.amount }}"
+                        data-metric="{{ ingredient.metric }}"
+                        data-expiry="{{ ingredient.expiry_date }}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#addSingleModal">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <form action="/inventory/delete" method="post">
+                        <input type="hidden" name="id_delete" value="{{ ingredient.id }}">
+                        <button type="submit" class="btn-close"></button>
+                    </form>
+                </div>
 
                 <!-- Content -->
                 <h6 class="card-title h5">{{ ingredient.name }}</h6>
@@ -101,7 +113,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <form action="/inventory/add" method="post">
+                    <form action="/inventory/add" method="post" id="add_form">
                         <div class="mb-3">
                             <label for="name" class="form-label d-block text-start">Name</label>
                             <input autofocus autocomplete="off" name="name" id="name" type="text" placeholder="Ingredient Name" class="form-control w-100 mb-3">
@@ -124,6 +136,7 @@
                             <label for="expiry_date" class="form-label d-block text-start">Expiry Date</label>
                             <input name="expiry_date" id="expiry_date" type="date" class="form-control">
                         </div>
+                            <input name="id_edit" id="id_edit" type="hidden">
                         <div class="text-end">
                             <button class="btn btn-primary rounded-pill mt-3 w-25" type="submit">Save</button>
                         </div>
@@ -171,3 +184,30 @@
 
 {% endblock %}
 
+{% block script%}
+<script>
+let allEditButtons = document.querySelectorAll('.btn-edit');
+let addButton = document.getElementById('add_ingredient');
+let name = document.getElementById('name');
+let amount = document.getElementById('amount');
+let expiry_date = document.getElementById('expiry_date');
+let id_edit = document.getElementById('id_edit');
+let add_form = document.getElementById('add_form');
+let modal = document.getElementById('addSingleModal');
+
+allEditButtons.forEach(function(button) {
+    button.addEventListener("click", function() {
+        name.value = button.dataset.name;
+        amount.value = button.dataset.amount;
+        expiry_date.value = button.dataset.expiry;
+        id_edit.value = button.dataset.id;
+        add_form.action = '/inventory/edit';
+    });
+});
+
+addButton.addEventListener('click', () => {
+    add_form.action = "/inventory/add";
+    id_edit.value = "";
+});
+</script>
+{% endblock %}

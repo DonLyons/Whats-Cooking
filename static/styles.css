@@ -132,3 +132,55 @@ a:hover {
     0%, 100% {box-shadow: 0 4px 10px rgba(var(--brick-rgb), 0.4); }
     50% { box-shadow: 0 4px 20px rgba(var(--brick-rgb), 1); }
 }
+
+.dropdown-item:hover {
+    cursor:pointer;
+}
+.btn-close {
+    opacity: 0.2;
+}
+
+.btn-close:active {
+    opacity: 1;
+    transform:scale(0.75);
+}
+
+.btn-close:focus {
+    outline:none;
+    box-shadow: none;
+}
+
+.bi-pencil-square {
+    font-size: 1.3em;
+    color: var(--charcoal);
+    opacity: 0.2;
+}
+
+.bi-pencil-square:hover {
+    opacity: 1;
+}
+
+.bi-pencil-square:active {
+    opacity: 1;
+}
+
+.btn-edit:active {
+    transform:scale(0.75);
+}
+
+.btn-edit {
+    outline: none;
+    border: none;
+    background: none;
+}
+
+.ingredient-card-buttons {
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    position: absolute;
+    top:0px;
+    right:0px;
+    padding-top: 8px;
+    padding-right: 8px;
+}
