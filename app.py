@@ -43,7 +43,7 @@ def get_db():
             )
             # Borrow a new connection
             g.db = connection_pool.getconn()
-        return g.db
+    return g.db
 
 
 # Close connection at end of every request
@@ -234,6 +234,11 @@ def inventory_edit():
 @app.route("/inventory/bulk-add", methods=["POST"])
 @login_required
 def inventory_bulk_add():
+    # Ensure user has an API key
+    if session.get("api_key") is None:
+        flash("Please provide an API Key below to enable bulk logging.", "warning")
+        return redirect("/settings")
+    
     # Get ingredient string
     ingredients = request.form.get("ingredients_input")
     if not ingredients:
